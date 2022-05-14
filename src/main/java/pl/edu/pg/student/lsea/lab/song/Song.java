@@ -1,5 +1,6 @@
 package pl.edu.pg.student.lsea.lab.song;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.concurrent.atomic.AtomicLong;
@@ -8,8 +9,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * Represents a released song in the streaming service.
  * @author Jakub Górniak
  */
-public class Song {
-	
+public class Song implements Serializable{
+
 	/**
 	 * Comparator for comparing 2 songs.
 	 * According to certain value of enum, comparator compares on chosen parameter.
@@ -52,6 +53,9 @@ public class Song {
 	        }
 	    };
 	}
+	
+	/** serialization identifier */
+	private static final long serialVersionUID = 1L;
 
 	/** song id generator */
 	private static AtomicLong ID_GENERATOR = new AtomicLong();

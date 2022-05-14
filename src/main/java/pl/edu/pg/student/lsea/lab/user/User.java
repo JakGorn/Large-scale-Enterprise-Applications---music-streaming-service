@@ -1,5 +1,6 @@
 package pl.edu.pg.student.lsea.lab.user;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -17,7 +18,7 @@ import pl.edu.pg.student.lsea.lab.user.playlist.Playlist;
  * Represents an user account in the streaming service.
  * @author Jakub Górniak
  */
-public class User {
+public class User implements Serializable{
 	
 	/**
 	 * Comparator for comparing 2 users.
@@ -49,6 +50,9 @@ public class User {
 	        }
 	    };
 	}
+	
+	/** serialization identifier */
+	private static final long serialVersionUID = 1L;
 	
 	/** user id generator */
 	private static AtomicLong ID_GENERATOR = new AtomicLong();

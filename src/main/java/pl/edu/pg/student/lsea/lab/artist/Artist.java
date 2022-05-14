@@ -1,5 +1,6 @@
 package pl.edu.pg.student.lsea.lab.artist;
 
+import java.io.Serializable;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -11,7 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * An abstract class which represents an artist who released a song in the streaming service.
  * @author Jakub Górniak
  */
-public abstract class Artist {
+public abstract class Artist implements Serializable{
 	
 	/**
 	 * Comparator for comparing 2 artists.
@@ -43,6 +44,9 @@ public abstract class Artist {
 	        }
 	    };
 	}
+	
+	/** serialization identifier */
+	private static final long serialVersionUID = 1L;
 	
 	/** artist id generator */
 	private static AtomicLong ID_GENERATOR = new AtomicLong();
