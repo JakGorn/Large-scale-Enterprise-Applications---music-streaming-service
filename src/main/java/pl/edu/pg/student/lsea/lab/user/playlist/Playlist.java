@@ -3,6 +3,7 @@
  */
 package pl.edu.pg.student.lsea.lab.user.playlist;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -14,7 +15,10 @@ import pl.edu.pg.student.lsea.lab.user.playlist.config.PlaylistConfig;
  * Represents the playlist of the user with certain songs added.
  * @author Jakub Górniak
  */
-public class Playlist implements Cloneable {
+public class Playlist implements Cloneable, Serializable {
+
+	/** serialization identifier */
+	private static final long serialVersionUID = 1L;
 	
 	/** playlist id generator */
 	private static AtomicLong ID_GENERATOR = new AtomicLong();

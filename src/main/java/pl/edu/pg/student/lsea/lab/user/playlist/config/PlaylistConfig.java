@@ -1,12 +1,16 @@
 package pl.edu.pg.student.lsea.lab.user.playlist.config;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
  * Represents configuration of the user playlist.
  * @author Jakub Górniak
  */
-public class PlaylistConfig implements Cloneable{
+public class PlaylistConfig implements Cloneable, Serializable {
+
+	/** serialization identifier */
+	private static final long serialVersionUID = 1L;
 
 	/** name of the playlist */
 	private String name;

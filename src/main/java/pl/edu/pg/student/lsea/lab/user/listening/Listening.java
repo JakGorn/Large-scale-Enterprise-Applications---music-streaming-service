@@ -1,5 +1,6 @@
 package pl.edu.pg.student.lsea.lab.user.listening;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -7,7 +8,10 @@ import java.time.LocalDateTime;
  * Contains id of the song and it's time of listening.
  * @author Jakub Górniak
  */
-public class Listening {
+public class Listening implements Serializable {
+
+	/** serialization identifier */
+	private static final long serialVersionUID = 1L;
 	
 	/** the id of the song */
     private Long songID;

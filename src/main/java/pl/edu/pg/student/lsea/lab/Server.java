@@ -1,9 +1,6 @@
 package pl.edu.pg.student.lsea.lab;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -12,10 +9,21 @@ import pl.edu.pg.student.lsea.lab.configuration.DataInitializer;
 import pl.edu.pg.student.lsea.lab.song.Song;
 import pl.edu.pg.student.lsea.lab.user.User;
 
+/**
+ * Class representing the server
+ * @author Jan Bogdziewicz, Piotr Cichacki
+ */
 public class Server {
+    /** data generator */
     private static DataInitializer data = new DataInitializer();
+    /** server's socket */
     private ServerSocket serverSocket;
 
+    /**
+     * method that starts the server on a particular port
+     * @param port - port number of the server
+     * @throws IOException
+     */
     public void start(int port) throws IOException {
         serverSocket = new ServerSocket(port);
         System.out.println("Server started");
@@ -24,85 +32,106 @@ public class Server {
         }
     }
 
+    /**
+     * method used to stop the server and close server socket
+     * @throws IOException
+     */
     public void stop() throws IOException {
         serverSocket.close();
+        System.out.println("Server disconnected");
     }
 
+    /**
+     * static class that handles connected client
+     * @author Jan Bogdziewicz, Piotr Cichacki
+     */
     private static class ClientHandler extends Thread {
+        /** client socket */
         private Socket clientSocket;
-        private PrintWriter out;
+        /** stream for sending objects to the client */
+        private ObjectOutputStream out;
+        /** stream for reading string messages from the client */
         private BufferedReader in;
 
+        /**
+         * constructor
+         * @param socket client's socket
+         */
         public ClientHandler(Socket socket) {
-            this.clientSocket = socket;
+            try {
+                this.clientSocket = socket;
+                this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                this.out = new ObjectOutputStream(clientSocket.getOutputStream());
+                System.out.println("Client has connected to the server");
+            } catch (IOException i) {
+                System.out.println(i);
+            }
         }
 
+        /**
+         * thread's method to be run when the thread starts
+         */
+        @Override
         public void run() {
             try {
-                in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 String message;
                 while ((message = in.readLine()) != null) {
-                    // String messageArray[] = message.split(" (?=(?:[^']*'[^']*')*[^']*$)");
+                    System.out.println("Request from client side: " + message);
                     String messageArray[] = message.split(" ", 2);
                     switch (messageArray[0]) {
                         case "song":
                             String songName = messageArray[1];
                             if (songName.equals("all")) {
-                                // send message to client containing all songs
+                                out.writeObject(data.getSongs());
                             } else {
                                 Song song = data.getSongs().stream()
                                         .filter(s -> songName.equals(s.getName()))
                                         .findAny()
                                         .orElse(null);
-                                if (song != null) {
-                                    // send message about particular song
-                                } else {
-                                    // send message to print out "song not found"
-                                }
+                                out.writeObject(song);
                             }
                             break;
                         case "artist":
                             String stageName = messageArray[1];
                             if (stageName.equals("all")) {
-                                // send message to client containing data about all artists
+                                out.writeObject(data.getArtists());
                             } else {
                                 Artist artist = data.getArtists().stream()
                                         .filter(a -> stageName.equals(a.getStageName()))
                                         .findAny()
                                         .orElse(null);
-                                if (artist != null) {
-                                    // send message about particular artist
-                                } else {
-                                    // send message to print out "artist not found"
-                                }
+                                out.writeObject(artist);
                             }
                             break;
                         case "user":
                             String username = messageArray[1];
                             if (username.equals("all")) {
-                                // send message about all users
+                                out.writeObject(data.getUsers());
                             } else {
                                 User user = data.getUsers().stream()
                                         .filter(u -> username.equals(u.getUsername()))
                                         .findAny()
                                         .orElse(null);
-                                if (user != null) {
-                                    // send message about particular user
-                                } else {
-                                    // send message to print out "user not found"
-                                }
+                                out.writeObject(user);
                             }
                             break;
                         default:
                             break;
                     }
                 }
-
                 in.close();
                 out.close();
                 clientSocket.close();
+                System.out.println("Client has disconnected from the server.");
             } catch (Exception e) {
-                e.printStackTrace();
+                try {
+                    in.close();
+                    out.close();
+                    clientSocket.close();
+                    System.out.println("Client has disconnected from the server.");
+                } catch (IOException i) {
+                    System.out.println(i);
+                }
             }
         }
     }

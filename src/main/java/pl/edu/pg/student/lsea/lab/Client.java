@@ -1,8 +1,6 @@
 package pl.edu.pg.student.lsea.lab;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -14,13 +12,16 @@ import pl.edu.pg.student.lsea.lab.user.User;
 
 /**
  * Class representing the client
- * @author Jakub Górniak
+ * @author Jakub Górniak, Piotr Cichacki
  */
 public class Client extends Thread {
 
+	/** client socket */
     private Socket clientSocket = null;
+	/** stream for reading objects from the server */
     private ObjectInputStream in = null;
-    private DataOutputStream out = null;
+	/** stream for sending string messages to the server */
+    private PrintWriter out = null;
  
     /**
      * Creates new client and establishes connection
@@ -32,10 +33,10 @@ public class Client extends Thread {
         try
         {
             clientSocket = new Socket(address, port);
-            System.out.println("Connected");
+            System.out.println("Client connected to the server");
 
             in = new ObjectInputStream(clientSocket.getInputStream());
-            out = new DataOutputStream(clientSocket.getOutputStream());
+            out = new PrintWriter(clientSocket.getOutputStream(), true);
         }
         catch(UnknownHostException u)
         {
@@ -56,7 +57,7 @@ public class Client extends Thread {
     	Object resp = null;
     	try
         {
-            out.writeUTF(msg);
+            out.println(msg);
             resp = (Object) in.readObject();
         }
         catch(IOException | ClassNotFoundException i)
@@ -73,6 +74,7 @@ public class Client extends Thread {
             in.close();
             out.close();
             clientSocket.close();
+			System.out.println("Client disconnected from the server.");
         }
         catch(IOException i)
         {
@@ -84,12 +86,12 @@ public class Client extends Thread {
 	public static void main(String args[])
     {
     	Scanner scanner = new Scanner(System.in);
-        Client client = new Client("127.0.0.1", 5000);
+        Client client = new Client("127.0.0.1", 5555);
         
         String input = "";
     	while(!input.equals("exit"))
     	{
-			System.out.println("Main menu");
+			System.out.println("\nMain menu");
     		System.out.println("You can find information on the song database, type help for more info.");
     		input = scanner.next();
 	    	switch (input) {
@@ -101,22 +103,17 @@ public class Client extends Thread {
 				if(songName.equals("all"))
 				{		
 					// get all songs from server, message = "song all"
-					System.out.println((List<Song>) client.sendMessage(input + songName));
+					System.out.println((List<Song>) client.sendMessage(input + " " + songName));
 				}
 				else {
 					// get chosen song from server, message = "song 'song name'"
-					Song song = (Song) client.sendMessage(input + songName);
-					/** looking for certain song server side
-					Song song = data.getSongs().stream()
-							  .filter(s -> songName.equals(s.getName()))
-							  .findAny()
-							  .orElse(null); */
+					Song song = (Song) client.sendMessage(input + " " + songName);
 					if(song != null)
 					{
 						System.out.println(song);
 					}
 					else {
-						System.out.println("Song not found.");
+						System.out.println("\nSong not found.");
 					}
 				}
 				break;
@@ -128,22 +125,17 @@ public class Client extends Thread {
 				if(stageName.equals("all"))
 				{
 					// get all artists from server, message = "artist all"
-					System.out.println((List<Artist>) client.sendMessage(input + stageName));
+					System.out.println((List<Artist>) client.sendMessage(input + " " + stageName));
 				}
 				else {
 					// get chosen artist from server, message = "artist 'stage name'"
-					Artist artist = (Artist) client.sendMessage(input + stageName);
-					/** looking for certain artist server side
-					Artist artist = data.getArtists().stream()
-						  .filter(a -> stageName.equals(a.getStageName()))
-						  .findAny()
-						  .orElse(null); */
+					Artist artist = (Artist) client.sendMessage(input + " " + stageName);
 					if(artist != null)
 					{
 						System.out.println(artist);
 					}
 					else {
-						System.out.println("Artist not found.");
+						System.out.println("\nArtist not found.");
 					}
 				}		
 				break;
@@ -155,22 +147,17 @@ public class Client extends Thread {
 				if(username.equals("all"))
 				{
 					// get all users from server, message = "user all"
-					System.out.println((List<User>) client.sendMessage(input + username));
+					System.out.println((List<User>) client.sendMessage(input + " " + username));
 				}
 				else {
 					// get chosen user from server, message = "user 'username'"
-					User user = (User) client.sendMessage(input + username);
-					/** looking for certain user server side
-					User user = data.getUsers().stream()
-							  .filter(u -> username.equals(u.getUsername()))
-							  .findAny()
-							  .orElse(null); */
+					User user = (User) client.sendMessage(input + " " + username);
 					if(user != null)
 					{
 						System.out.println(user);
 					}
 					else {
-						System.out.println("User not found.");
+						System.out.println("\nUser not found.");
 					}
 				}
 				break;

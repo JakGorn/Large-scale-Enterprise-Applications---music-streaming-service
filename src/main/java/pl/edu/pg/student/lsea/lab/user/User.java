@@ -18,7 +18,7 @@ import pl.edu.pg.student.lsea.lab.user.playlist.Playlist;
  * Represents an user account in the streaming service.
  * @author Jakub Górniak
  */
-public class User implements Serializable{
+public class User implements Serializable {
 	
 	/**
 	 * Comparator for comparing 2 users.

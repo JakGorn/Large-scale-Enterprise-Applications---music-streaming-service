@@ -62,7 +62,7 @@ public class DataInitializer {
 	private List<User> users = new ArrayList<User>();
 	
 	/** number of users in the database */
-	private final int userNr = 10000;
+	private final int userNr = 100;
 	
 	/** number of bands in the database */
 	private final int bandNr = 100;
