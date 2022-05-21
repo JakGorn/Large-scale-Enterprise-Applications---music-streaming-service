@@ -6,30 +6,54 @@ package pl.edu.pg.student.lsea.lab.user.playlist;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+import lombok.Getter;
+import lombok.Setter;
 import pl.edu.pg.student.lsea.lab.song.Song;
+import pl.edu.pg.student.lsea.lab.user.User;
 import pl.edu.pg.student.lsea.lab.user.playlist.config.PlaylistConfig;
 
 /**
  * Represents the playlist of the user with certain songs added.
  * @author Jakub Górniak
  */
+@Entity
+@Table(name = "playlists")
 public class Playlist implements Cloneable, Serializable {
 
 	/** serialization identifier */
 	private static final long serialVersionUID = 1L;
 	
-	/** playlist id generator */
-	private static AtomicLong ID_GENERATOR = new AtomicLong();
-	
 	/** the playlist id */
+	@Getter
+	@Id
+	@GeneratedValue
 	private Long playlistID;
+	
+	/** user which the playlist belongs to*/
+	@Getter @Setter
+	@ManyToOne
+	@JoinColumn(name = "user_id")
+	private User user;
 
 	/** playlist configuration */
+	@Getter @Setter
+	@OneToOne(mappedBy = "playlist", cascade = CascadeType.ALL)
 	private PlaylistConfig config;
 	
 	/** the songs in the playlist */
+	@Getter @Setter
+	@ManyToMany
 	private List<Song> songs;
 	
 	/**
@@ -37,8 +61,7 @@ public class Playlist implements Cloneable, Serializable {
 	 * Creates a new playlist without setting the parameters.
 	 */
 	public Playlist() {
-		this.playlistID = ID_GENERATOR.getAndIncrement();
-		this.setConfig(new PlaylistConfig());
+		this.config = new PlaylistConfig();
 		this.songs = new ArrayList<Song>();
 	}
 
@@ -47,44 +70,9 @@ public class Playlist implements Cloneable, Serializable {
 	 * @param name name of the playlist
 	 * @param songs songs in the playlist
 	 */
-	public Playlist(PlaylistConfig config, List<Song> songs) {
-		this.playlistID = ID_GENERATOR.getAndIncrement();
-		this.setConfig(config);
-		this.songs = songs;
-	}
-
-	/**
-	 * @return the id of the playlist
-	 */
-	public Long getPlaylistID() {
-		return playlistID;
-	}
-
-	/**
-	 * @return the configuration of the playlist
-	 */
-	public PlaylistConfig getConfig() {
-		return config;
-	}
-
-	/**
-	 * @param config the configuration of the playlist to set
-	 */
-	public void setConfig(PlaylistConfig config) {
+	public Playlist(User user, PlaylistConfig config, List<Song> songs) {
+		this.user = user;
 		this.config = config;
-	}
-
-	/**
-	 * @return the songs in the playlist
-	 */
-	public List<Song> getSongs() {
-		return songs;
-	}
-
-	/**
-	 * @param songs the songs in the playlist to set
-	 */
-	public void setSongs(List<Song> songs) {
 		this.songs = songs;
 	}
 	
@@ -121,9 +109,8 @@ public class Playlist implements Cloneable, Serializable {
 	    try {
 	        playlist = (Playlist) super.clone();
 	    } catch (CloneNotSupportedException e) {
-	        playlist = new Playlist(this.getConfig(), this.getSongs());
+	        playlist = new Playlist(this.getUser(), this.getConfig(), this.getSongs());
 	    }
-	    playlist.playlistID = ID_GENERATOR.getAndIncrement();
 	    playlist.config = (PlaylistConfig) this.config.clone();
 	    return playlist;
 	}

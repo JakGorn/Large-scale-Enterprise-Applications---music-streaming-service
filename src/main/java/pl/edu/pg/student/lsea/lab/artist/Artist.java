@@ -5,13 +5,28 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import lombok.Getter;
+import lombok.Setter;
+import pl.edu.pg.student.lsea.lab.song.Song;
 
 
 /**
  * An abstract class which represents an artist who released a song in the streaming service.
  * @author Jakub Górniak
  */
+@Entity
+@Table(name = "artists")
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Artist implements Serializable{
 	
 	/**
@@ -48,37 +63,47 @@ public abstract class Artist implements Serializable{
 	/** serialization identifier */
 	private static final long serialVersionUID = 1L;
 	
-	/** artist id generator */
-	private static AtomicLong ID_GENERATOR = new AtomicLong();
-	
 	/** the artist id */
+	@Getter
+	@Id
+	@GeneratedValue
+	@Column(name = "artist_id")
 	private Long artistID;
 	
 	/** the stage name of the artist */
+	@Getter @Setter
+	@Column(name = "stage_name")
 	private String stageName;
 	
 	/** the country of origin of the artist */
+	@Getter @Setter
 	private String country;
 	
 	/** the genre of the artist */
+	@Getter @Setter
 	private String genre;
 	
 	/** the year in which the artist became active */
+	@Getter @Setter
+	@Column(name = "active_since")
 	private Year activeSince;
 
 	/** the year till which the artist was active, null if still active*/
+	@Getter @Setter
+	@Column(name = "active_till")
 	private Year activeTill;
 	
 	/** the list of id's of songs released by the artist */
-	private List<Long> songs;
+	@Getter @Setter
+	@OneToMany(mappedBy = "artist", cascade = CascadeType.ALL)
+	private List<Song> songs;
 	
 	/**
 	 * Default constructor.
 	 * For invocation in subclass default constructors.
 	 */
 	protected Artist() {
-		this.artistID = ID_GENERATOR.getAndIncrement();
-		this.songs = new ArrayList<Long>();
+		this.songs = new ArrayList<Song>();
 	}
 	
 	/**
@@ -91,104 +116,12 @@ public abstract class Artist implements Serializable{
 	 * @param activeTill the year till which the artist was active, null if artist is still active
 	 * @param songs the list of id's of songs released by the artist
 	 */
-	protected Artist(String stageName, String country, String genre, Year activeSince, Year activeTill, List<Long> songs) {
-		this.artistID = ID_GENERATOR.getAndIncrement();
+	protected Artist(String stageName, String country, String genre, Year activeSince, Year activeTill, List<Song> songs) {
 		this.stageName = stageName;
 		this.country = country;
 		this.genre = genre;
 		this.activeSince = activeSince;
 		this.activeTill = activeTill;
-		this.songs = songs;
-	}
-
-	/**
-	 * @return the id of the artist
-	 */
-	public Long getArtistID() {
-		return artistID;
-	}
-
-	/**
-	 * @return the stage name of the artist (e.g. band name, singer alias)
-	 */
-	public String getStageName() {
-		return stageName;
-	}
-
-	/**
-	 * @param stageName the stage name of the artist to set
-	 */
-	public void setStageName(String stageName) {
-		this.stageName = stageName;
-	}
-	
-	/**
-	 * @return the country of origin of the artist
-	 */
-	public String getCountry() {
-		return country;
-	}
-
-	/**
-	 * @param country the country of origin of the artist to set 
-	 */
-	public void setCountry(String country) {
-		this.country = country;
-	}
-
-	/**
-	 * @return the genre of the artist
-	 */
-	public String getGenre() {
-		return genre;
-	}
-
-	/**
-	 * @param genre the genre of the artist to set
-	 */
-	public void setGenre(String genre) {
-		this.genre = genre;
-	}
-	
-	/**
-	 * @return the year in which the artist became active
-	 */
-	public Year getActiveSince() {
-		return activeSince;
-	}
-
-	/**
-	 * @param activeSince the year in which the artist became active to set
-	 */
-	public void setActiveSince(Year activeSince) {
-		this.activeSince = activeSince;
-	}
-
-	/**
-	 * @return the year till which artist was active, null if artist is still active
-	 */
-	public Year getActiveTill() {
-		return activeTill;
-	}
-
-	/**
-	 * @param activeTill the year till which the artist was active to set, null if artist is still active
-	 */
-	public void setActiveTill(Year activeTill) {
-		this.activeTill = activeTill;
-	}
-
-	/**
-	 * @return the list of id's of songs released by the artist
-	 */
-	public List<Long> getSongs() {
-		return songs;
-	}
-
-	/**
-	 * @param songs the list of id's of songs released by the artist to set
-	 */
-	public void setSongs(List<Long> songs) {
 		this.songs = songs;
 	}
 

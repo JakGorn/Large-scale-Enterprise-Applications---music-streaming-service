@@ -133,7 +133,8 @@ public class AnalysisYear {
 			songIDs.addAll(
 					u.getListenings().stream()
 					.filter(l -> analysisYear.equals(l.getListeningTime().getYear()))
-					.map(Listening::getSongID)
+					.map(Listening::getSong)
+					.map(Song::getSongID)
 					.collect(Collectors.toList()));
 			countries.put(u.getCountry(),Long.valueOf(0));
 		}
@@ -179,12 +180,9 @@ public class AnalysisYear {
 			List <Listening> userListeningsYear = u.getListenings().stream().filter(l -> analysisYear.equals(l.getListeningTime().getYear())).collect(Collectors.toList());
 			for(Listening l : userListeningsYear)
 			{
-				Song song = data.getSongs().stream()
-						  .filter(s -> l.getSongID().equals(s.getSongID()))
-						  .findAny()
-						  .orElse(null);
+				Song song = l.getSong();
 				countryGenre.put(song.getGenre(), u.getCountry(), countryGenre.get(song.getGenre(), u.getCountry()) + 1);
-				ageArtist.put(userAge, song.getArtistID(), ageArtist.get(userAge, song.getArtistID()) + 1);
+				ageArtist.put(userAge, song.getArtist().getArtistID(), ageArtist.get(userAge, song.getArtist().getArtistID()) + 1);
 			}
 		}
 	}
@@ -256,7 +254,7 @@ public class AnalysisYear {
 					  .findAny()
 					  .orElse(null);
 			genres.put(song.getGenre(), genres.get(song.getGenre()) + entry.getValue());
-			artistCounts.put(song.getArtistID(), artistCounts.get(song.getArtistID()) + entry.getValue());
+			artistCounts.put(song.getArtist().getArtistID(), artistCounts.get(song.getArtist().getArtistID()) + entry.getValue());
 			if(entry.getValue() > 100)
 			{
 				if(data.getSongsOver100().get(entry.getKey()) != null)
@@ -289,7 +287,7 @@ public class AnalysisYear {
 				  .findAny()
 				  .orElse(null);
 		Artist maxSongArtist = data.getArtists().stream()
-				  .filter(a -> maxSong.getArtistID().equals(a.getArtistID()))
+				  .filter(a -> maxSong.getArtist().getArtistID().equals(a.getArtistID()))
 				  .findAny()
 				  .orElse(null);
 		

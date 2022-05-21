@@ -3,22 +3,50 @@ package pl.edu.pg.student.lsea.lab.user.playlist.config;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+import pl.edu.pg.student.lsea.lab.user.playlist.Playlist;
+
 /**
  * Represents configuration of the user playlist.
  * @author Jakub Górniak
  */
+@Entity
+@Table(name = "playlist_configs")
 public class PlaylistConfig implements Cloneable, Serializable {
 
 	/** serialization identifier */
 	private static final long serialVersionUID = 1L;
 
+	/** the id of the playlist config */
+	@Getter
+	@Id
+	@GeneratedValue
+	@Column(name = "playlist_id")
+	private Long playlistId;
+	
+	/** playlist to which config belongs */
+	@Getter @Setter
+	@OneToOne
+	private Playlist playlist;
+	
 	/** name of the playlist */
+	@Getter @Setter
 	private String name;
 	
 	/** time of creation of the playlist */
+	@Getter @Setter
+	@Column(name = "creation_time")
 	private LocalDateTime creationTime;
 	
 	/** whether playlist plays in shuffle mode */
+	@Getter @Setter
 	private boolean shuffle;
 	
 	/**
@@ -36,52 +64,11 @@ public class PlaylistConfig implements Cloneable, Serializable {
 	 * @param name name of the playlist
 	 * @param songs songs in the playlist
 	 */
-	public PlaylistConfig(String name, boolean shuffle) {
+	public PlaylistConfig(Playlist playlist, String name, boolean shuffle) {
+		this.playlist = playlist;
 		this.name = name;
 		this.creationTime = LocalDateTime.now();
 		this.shuffle = shuffle;
-	}
-
-	/**
-	 * @return the name of the playlist
-	 */
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * @param name the name of the playlist to set
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	/**
-	 * @return time of creation of the playlist
-	 */
-	public LocalDateTime getCreationTime() {
-		return creationTime;
-	}
-
-	/**
-	 * @param creationTime time of creation of the playlist to set
-	 */
-	public void setCreationTime(LocalDateTime creationTime) {
-		this.creationTime = creationTime;
-	}
-
-	/**
-	 * @return whether playlist plays in shuffle mode
-	 */
-	public boolean getShuffle() {
-		return shuffle;
-	}
-
-	/**
-	 * Switching the mode of playing to shuffle or otherwise.
-	 */
-	public void switchShuffle() {
-		this.shuffle = !this.shuffle;
 	}
 	
 	/**
@@ -103,7 +90,7 @@ public class PlaylistConfig implements Cloneable, Serializable {
 	    try {
 	        config = (PlaylistConfig) super.clone();
 	    } catch (CloneNotSupportedException e) {
-	        config = new PlaylistConfig(this.getName(), this.getShuffle());
+	        config = new PlaylistConfig(this.getPlaylist(), this.getName(), this.isShuffle());
 	    }
 	    config.setCreationTime(LocalDateTime.now());
 	    return config;

@@ -4,6 +4,11 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
+import javax.persistence.Persistence;
+
 import pl.edu.pg.student.lsea.lab.artist.Artist;
 import pl.edu.pg.student.lsea.lab.configuration.DataInitializer;
 import pl.edu.pg.student.lsea.lab.song.Song;
@@ -18,6 +23,8 @@ public class Server {
     private static DataInitializer data = new DataInitializer();
     /** server's socket */
     private ServerSocket serverSocket;
+    /** entity manage factory */
+    private EntityManagerFactory emf = Persistence.createEntityManagerFactory("name_PU");
 
     /**
      * method that starts the server on a particular port
@@ -25,18 +32,42 @@ public class Server {
      * @throws IOException
      */
     public void start(int port) throws IOException {
+    	initDatabase();
         serverSocket = new ServerSocket(port);
         System.out.println("Server started");
         while (true) {
-            new ClientHandler(serverSocket.accept()).start();
+            new ClientHandler(serverSocket.accept(), this.emf).start();
         }
     }
 
     /**
+     * Initializes the database with generated data
+     */
+    private void initDatabase() {
+    	
+    	EntityManager em = emf.createEntityManager();
+    	EntityTransaction tx = em.getTransaction();
+    	
+    	for(Artist a : data.getArtists())
+        {
+        	tx.begin();
+        	em.persist(a);
+        	tx.commit();
+        }
+        for(User u : data.getUsers())
+        {
+        	tx.begin();
+        	em.persist(u);
+        	tx.commit();
+        }
+	}
+
+	/**
      * method used to stop the server and close server socket
      * @throws IOException
      */
     public void stop() throws IOException {
+    	emf.close();
         serverSocket.close();
         System.out.println("Server disconnected");
     }
@@ -52,16 +83,20 @@ public class Server {
         private ObjectOutputStream out;
         /** stream for reading string messages from the client */
         private BufferedReader in;
+        /** entity manager */
+        private EntityManager em;
 
         /**
          * constructor
          * @param socket client's socket
+         * @param emf entity manager factory
          */
-        public ClientHandler(Socket socket) {
+        public ClientHandler(Socket socket, EntityManagerFactory emf) {
             try {
                 this.clientSocket = socket;
                 this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 this.out = new ObjectOutputStream(clientSocket.getOutputStream());
+                this.em = emf.createEntityManager();
                 System.out.println("Client has connected to the server");
             } catch (IOException i) {
                 System.out.println(i);
@@ -81,7 +116,7 @@ public class Server {
                     switch (messageArray[0]) {
                         case "song":
                             String songName = messageArray[1];
-                            if (songName.equals("all")) {
+                            if (songName.equals("all")) { 
                                 out.writeObject(data.getSongs());
                             } else {
                                 Song song = data.getSongs().stream()
@@ -106,7 +141,7 @@ public class Server {
                         case "user":
                             String username = messageArray[1];
                             if (username.equals("all")) {
-                                out.writeObject(data.getUsers());
+                                out.writeObject(this.em.createNamedQuery("findUsers", User.class).getResultList());
                             } else {
                                 User user = data.getUsers().stream()
                                         .filter(u -> username.equals(u.getUsername()))
@@ -119,12 +154,14 @@ public class Server {
                             break;
                     }
                 }
+                em.close();
                 in.close();
                 out.close();
                 clientSocket.close();
                 System.out.println("Client has disconnected from the server.");
             } catch (Exception e) {
                 try {
+                	em.close();
                     in.close();
                     out.close();
                     clientSocket.close();

@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.github.javafaker.Faker;
 
-
 import pl.edu.pg.student.lsea.lab.artist.Artist;
 import pl.edu.pg.student.lsea.lab.artist.band.Band;
 import pl.edu.pg.student.lsea.lab.artist.musician.Musician;
@@ -96,16 +95,12 @@ public class DataInitializer {
 	 * @param artists list of artists
 	 */
 	private void init(List<Artist> artists, List<Song> songs, List<User> users) {
-		
+
 		Random rand = new Random();
 		Calendar cld = Calendar.getInstance(), cld2 = Calendar.getInstance();
 		Faker faker = new Faker();
 		
-		Stack<Integer> stackMusicians = new Stack<Integer>();
-        for (int i=0; i<musicianNr; i++) {
-            stackMusicians.push(i);
-        }
-        Collections.shuffle(stackMusicians);
+		Stack<Musician> stackMusicians = new Stack<Musician>();
 
 		for(int i=0; i<this.userNr; i++)
 		{
@@ -148,7 +143,10 @@ public class DataInitializer {
 				int stageRandom = rand.nextInt(2) + 1;
 				m.setStageName(String.join(" ", faker.lorem().words(stageRandom)));
 			}
+			stackMusicians.push(m);
 		}
+		
+		Collections.shuffle(stackMusicians);
 		
 		for(int i=0; i<this.bandNr; i++)
 		{
@@ -174,12 +172,10 @@ public class DataInitializer {
 			for (int j=0;j<membersNr;j++)
 			{
 	        	genreRandom = rand.nextInt(5);
-	        	Artist artist = artists.stream()
-						  .filter(a -> Long.valueOf(stackMusicians.peek().toString()).equals(a.getArtistID()))
-						  .findAny()
-						  .orElse(null);
-	        	artist.setGenre(genre[genreTypeRandom][genreRandom]);
-	        	b.getMembersID().add(Long.valueOf(stackMusicians.pop()));
+	        	Musician musician = stackMusicians.pop();
+	        	musician.setGenre(genre[genreTypeRandom][genreRandom]);
+	        	musician.setBand(b);
+	        	b.getMembers().add(musician);
 			}
 			
 			int albumNr = rand.nextInt(3) + 1;
@@ -205,35 +201,31 @@ public class DataInitializer {
 					Song s = new Song();
 			        songs.add(s);
 			        s.setAlbum(album);
-			        s.setArtistID(b.getArtistID());
+			        s.setArtist(b);
 			        s.setGenre(genre[genreTypeRandom][genreRandom]);
 			        s.setLength((short)faker.number().numberBetween(90, 420));
 			        s.setName(String.join(" ", faker.lorem().words(songWordsNr)));
 			        s.setReleaseDate(albumDate);
-			        b.getSongs().add(s.getSongID());
+			        b.getSongs().add(s);
 				}
 			}
 		} 
 		
-		for(Integer m : stackMusicians)
+		for(Musician musician : stackMusicians)
 		{
-			Artist artist = artists.stream()
-					  .filter(a -> Long.valueOf(m.toString()).equals(a.getArtistID()))
-					  .findAny()
-					  .orElse(null);
 			int genreTypeRandom = rand.nextInt(5);
 			int genreRandom = rand.nextInt(5);
-			artist.setGenre(genre[genreTypeRandom][genreRandom]);
+			musician.setGenre(genre[genreTypeRandom][genreRandom]);
 			int albumNr = rand.nextInt(3) + 1;
 			for(int j=0;j<albumNr;j++)
 			{
 				int songNr = rand.nextInt(5) + 5;
 				int albumWordsNr = rand.nextInt(3) + 1;
 				LocalDate albumDate;
-				cld.set(Calendar.YEAR, artist.getActiveSince().getValue());
-				if(artist.getActiveTill() != null)
+				cld.set(Calendar.YEAR, musician.getActiveSince().getValue());
+				if(musician.getActiveTill() != null)
 				{
-					cld2.set(Calendar.YEAR, artist.getActiveTill().getValue());
+					cld2.set(Calendar.YEAR, musician.getActiveTill().getValue());
 					albumDate = faker.date().between(cld.getTime(), cld2.getTime()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 				}
 				else {
@@ -247,12 +239,12 @@ public class DataInitializer {
 					Song s = new Song();
 			        songs.add(s);
 			        s.setAlbum(album);
-			        s.setArtistID(artist.getArtistID());
+			        s.setArtist(musician);
 			        s.setGenre(genre[genreTypeRandom][genreRandom]);
 			        s.setLength((short)faker.number().numberBetween(90, 420));
 			        s.setName(String.join(" ", faker.lorem().words(songWordsNr)));
 			        s.setReleaseDate(albumDate);
-			        artist.getSongs().add(s.getSongID());
+			        musician.getSongs().add(s);
 				}
 			}
 		}
@@ -265,13 +257,11 @@ public class DataInitializer {
         	int playlistNr = rand.nextInt(3);
         	for (int i=0;i<lNr;i++)
         	{
-        		Long songRandom = Long.valueOf(rand.nextInt(songNr));
-        		Song song = songs.stream()
-  					  .filter(s -> songRandom.equals(s.getSongID()))
-  					  .findAny()
-  					  .orElse(null);
+        		int songRandom = rand.nextInt(songNr);
+        		Song song = songs.get(songRandom);
         		Listening l = new Listening();
-        		l.setSongID(songRandom);
+        		l.setSong(song);
+        		l.setUser(u);
         		Date constraint = new GregorianCalendar(2013, 1, 1).getTime();
         		Date songDate = Date.from(song.getReleaseDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
         		if(constraint.before(songDate))
@@ -289,16 +279,14 @@ public class DataInitializer {
         	for(int i=0;i<playlistNr;i++)
         	{
         		Playlist p = new Playlist();
-    	        PlaylistConfig pConfig = new PlaylistConfig(faker.lorem().word(),rand.nextBoolean());
+        		p.setUser(u);
+    	        PlaylistConfig pConfig = new PlaylistConfig(p, faker.lorem().word(),rand.nextBoolean());
     	        u.getPlaylists().add(p);
     	        int playlistSongNr = rand.nextInt(20) + 5;
     	        for (int j=0;j<playlistSongNr;j++)
     	        {
-    	        	Long songRandom = Long.valueOf(rand.nextInt(songNr));
-    	        	Song song = songs.stream()
-    	  					  .filter(s -> songRandom.equals(s.getSongID()))
-    	  					  .findAny()
-    	  					  .orElse(null);
+    	        	int songRandom = rand.nextInt(songNr);
+    	        	Song song = songs.get(songRandom);
     	        	p.addSong(song);
     	        }
     	        p.setConfig(pConfig);
@@ -307,7 +295,7 @@ public class DataInitializer {
     }
 
 	/**
-	 * Initializes "database" with data.
+	 * Initializes database with data.
 	 */
 	public DataInitializer() {
 		this.past10Years = new Stack<Integer>();

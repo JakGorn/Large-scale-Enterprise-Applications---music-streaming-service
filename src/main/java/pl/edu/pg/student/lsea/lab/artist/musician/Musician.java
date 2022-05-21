@@ -3,14 +3,34 @@ package pl.edu.pg.student.lsea.lab.artist.musician;
 import java.time.Year;
 import java.util.List;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import lombok.Getter;
+import lombok.Setter;
 import pl.edu.pg.student.lsea.lab.artist.Artist;
+import pl.edu.pg.student.lsea.lab.artist.band.Band;
+import pl.edu.pg.student.lsea.lab.song.Song;
 
 /**
  * Represents a single musician or current/former member of a band with released song in the streaming service. 
  * @author Jakub Górniak
  */
+@Getter
+@Setter
+@Entity
+@Table(name = "musicians")
 public class Musician extends Artist {
 
+	/** serialization identifier */
+	private static final long serialVersionUID = 1L;
+	
+	/** band in which the musician plays(null if none) */
+	@ManyToOne(cascade = CascadeType.PERSIST)
+	private Band band;
+	
 	/** the first name of the musician */
 	private String name;
 	
@@ -23,6 +43,7 @@ public class Musician extends Artist {
 	 */
 	public Musician() {
 		super();
+		this.band = null;
 	}
 	
 	/**
@@ -36,40 +57,13 @@ public class Musician extends Artist {
 	 * @param name the first name of the musician 
 	 * @param surname the surname of the musician
 	 */
-	public Musician(String stageName, String country, String genre, Year activeSince, Year activeTill, List<Long> songs, String name, String surname) {
+	public Musician(String stageName, String country, String genre, Year activeSince, Year activeTill, List<Song> songs, Band band, String name, String surname) {
 		super(stageName, country, genre, activeSince, activeTill, songs);
+		this.band = band;
 		this.name = name;
 		this.surname = surname;
 	}
-
-	/**
-	 * @return the first name of the musician
-	 */
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * @param name the first name of the musician to set
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	/**
-	 * @return the surname of the musician
-	 */
-	public String getSurname() {
-		return surname;
-	}
-
-	/**
-	 * @param surname the surname of the musician to set
-	 */
-	public void setSurname(String surname) {
-		this.surname = surname;
-	}
-
+	
 	/**
 	 * Generate a string representation of a musician.
 	 * @return string representation of musician.

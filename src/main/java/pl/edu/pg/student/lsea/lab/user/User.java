@@ -7,8 +7,18 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import org.hibernate.annotations.NamedQuery;
+
+import lombok.Getter;
+import lombok.Setter;
 import pl.edu.pg.student.lsea.lab.song.Song;
 import pl.edu.pg.student.lsea.lab.user.listening.Listening;
 import pl.edu.pg.student.lsea.lab.user.playlist.Playlist;
@@ -18,6 +28,9 @@ import pl.edu.pg.student.lsea.lab.user.playlist.Playlist;
  * Represents an user account in the streaming service.
  * @author Jakub Górniak
  */
+@NamedQuery(name = "findUsers", query = "from User")
+@Entity
+@Table(name = "users")
 public class User implements Serializable {
 	
 	/**
@@ -54,28 +67,39 @@ public class User implements Serializable {
 	/** serialization identifier */
 	private static final long serialVersionUID = 1L;
 	
-	/** user id generator */
-	private static AtomicLong ID_GENERATOR = new AtomicLong();
-	
 	/** the user id */
+	@Getter 
+	@Id
+	@GeneratedValue
+	@Column(name = "user_id")
 	private Long userID;
 	
 	/** the username of the user */
+	@Getter @Setter
 	private String username;
 	
 	/** the birth date of the user */
+	@Getter @Setter
+	@Column(name = "birth_date")
 	private LocalDate birthDate;
 	
 	/** the country of the user */
+	@Getter @Setter
 	private String country;
 	
 	/** the date of joining the service by the user */
+	@Getter @Setter
+	@Column(name = "join_date")
 	private LocalDate joinDate;
 	
 	/** the listening history of the user */ 
+	@Getter @Setter
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 	private List<Listening> listenings;
 	
 	/** the playlists of the user */ 
+	@Getter @Setter
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 	private List<Playlist> playlists;
 
 	/**
@@ -83,7 +107,6 @@ public class User implements Serializable {
 	 * Creates a new user without setting the parameters.
 	 */
 	public User() {
-		this.userID = ID_GENERATOR.getAndIncrement();
 		this.joinDate = LocalDate.now();
 		this.listenings = new ArrayList<Listening>();
 		this.playlists = new ArrayList<Playlist>();
@@ -99,103 +122,11 @@ public class User implements Serializable {
 	 * @param playlists the playlists of the user
 	 */
 	public User(String username, LocalDate birthDate, String country, List<Listening> listenings, List<Playlist> playlists) {
-		this.userID = ID_GENERATOR.getAndIncrement();
 		this.username = username;
 		this.birthDate = birthDate;
 		this.country = country;
 		this.joinDate = LocalDate.now();
 		this.listenings = listenings;
-		this.playlists = playlists;
-	}
-
-	/**
-	 * @return the id of the user
-	 */
-	public Long getUserID() {
-		return userID;
-	}
-
-	/**
-	 * @return the username of the user
-	 */
-	public String getUsername() {
-		return username;
-	}
-
-	/**
-	 * @param username the username of the user to set
-	 */
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	/**
-	 * @return the birth date of the user
-	 */
-	public LocalDate getBirthDate() {
-		return birthDate;
-	}
-
-	/**
-	 * @param birthDate the birth date of the user to set
-	 */
-	public void setBirthDate(LocalDate birthDate) {
-		this.birthDate = birthDate;
-	}
-
-	/**
-	 * @return the country of the user
-	 */
-	public String getCountry() {
-		return country;
-	}
-
-	/**
-	 * @param country the country of the user to set
-	 */
-	public void setCountry(String country) {
-		this.country = country;
-	}
-
-	/**
-	 * @return the date of joining the service by the user
-	 */
-	public LocalDate getJoinDate() {
-		return joinDate;
-	}
-
-	/**
-	 * @param joinDate the date of joining the service by the user to set
-	 */
-	public void setJoinDate(LocalDate joinDate) {
-		this.joinDate = joinDate;
-	}
-
-	/**
-	 * @return the listening history of the user
-	 */
-	public List<Listening> getListenings() {
-		return listenings;
-	}
-
-	/**
-	 * @param listening the listening history of the user to set
-	 */
-	public void setListenings(List<Listening> listenings) {
-		this.listenings = listenings;
-	}
-	
-	/**
-	 * @return the playlists of the user
-	 */
-	public List<Playlist> getPlaylists() {
-		return playlists;
-	}
-
-	/**
-	 * @param playlists the playlists of the user to set
-	 */
-	public void setPlaylists(List<Playlist> playlists) {
 		this.playlists = playlists;
 	}
 
@@ -218,11 +149,7 @@ public class User implements Serializable {
 	public String showStatistics(List<Song> songs) {
 		Map<String, Integer> map = new HashMap<String, Integer>();
         for(Listening l : this.listenings) {
-        	Long id = l.getSongID();
-        	Song song = songs.stream()
-					  .filter(s -> id.equals(s.getSongID()))
-					  .findAny()
-					  .orElse(null);
+        	Song song = l.getSong();
         	String songName = song.getName();
             Integer value = map.get(songName);
             if(value == null) {
@@ -241,7 +168,9 @@ public class User implements Serializable {
 	 * @param playlistID the id of the playlist to be copied
 	 */
 	public void copyPlaylist(User user, int playlistID) {
-		this.playlists.add((Playlist) user.playlists.get(playlistID).clone());
+		Playlist playlist = (Playlist) user.playlists.get(playlistID).clone();
+		playlist.setUser(this);
+		this.playlists.add(playlist);
 	}
 	
 }

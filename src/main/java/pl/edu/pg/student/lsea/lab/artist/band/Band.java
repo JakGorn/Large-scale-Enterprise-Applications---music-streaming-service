@@ -4,19 +4,33 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import lombok.Getter;
+import lombok.Setter;
 import pl.edu.pg.student.lsea.lab.artist.Artist;
+import pl.edu.pg.student.lsea.lab.artist.musician.Musician;
+import pl.edu.pg.student.lsea.lab.song.Song;
 
 /**
  * Represents a band consisting of at least 2 musicians who released a song in the streaming service. 
  * @author Jakub Górniak
  */
+@Getter
+@Setter
+@Entity
+@Table(name = "bands")
 public class Band extends Artist {
 	
-	/** list of member id's of the band */
-	private List<Long> membersID;
+	/** serialization identifier */
+	private static final long serialVersionUID = 1L;
 	
-	/** list of former member id's of the band */
-	private List<Long> formerMembersID;
+	/** list of members of the band */
+	@OneToMany(mappedBy = "band", cascade = CascadeType.ALL)
+	private List<Musician> members;
 	
 	/**
 	 * Default constructor.
@@ -24,8 +38,7 @@ public class Band extends Artist {
 	 */
 	public Band() {
 		super();
-		this.membersID = new ArrayList<Long>();
-		this.formerMembersID = new ArrayList<Long>();
+		this.members = new ArrayList<Musician>();
 	}
 	
 	/**
@@ -39,38 +52,9 @@ public class Band extends Artist {
 	 * @param members the list of id's of current band members
 	 * @param formerMembers the list of id's of former band members
 	 */
-	public Band(String stageName, String country, String genre, Year activeSince, Year activeTill, List<Long> songs, List<Long> membersID, List<Long> formerMembersID) {
+	public Band(String stageName, String country, String genre, Year activeSince, Year activeTill, List<Song> songs, List<Musician> members) {
 		super(stageName, country, genre, activeSince, activeTill, songs);
-		this.membersID = membersID;
-		this.formerMembersID = formerMembersID;
-	}
-
-	/**
-	 * @return the list of id's of current band members
-	 */
-	public List<Long> getMembersID() {
-		return membersID;
-	}
-
-	/**
-	 * @param members the list of id's of current band members to set
-	 */
-	public void setMembersID(List<Long> membersID) {
-		this.membersID = membersID;
-	}
-
-	/**
-	 * @return the list of id's of former band members
-	 */
-	public List<Long> getFormerMembersID() {
-		return formerMembersID;
-	}
-
-	/**
-	 * @param formerMembers the list of id's of former band members to set
-	 */
-	public void setFormerMembersID(List<Long> formerMembersID) {
-		this.formerMembersID = formerMembersID;
+		this.members = members;
 	}
 
 	/**
@@ -79,7 +63,7 @@ public class Band extends Artist {
 	 */
 	@Override
 	public String toString() {
-		return "\nBand [current members id = " + membersID + ", former members id = " + formerMembersID + ", stage name = " + getStageName()
+		return "\nBand [current members id = " + members + ", stage name = " + getStageName()
 				+ ", country = " + getCountry() + ", genre = " + getGenre() + ", active since = "
 				+ getActiveSince() + ", active till = " + getActiveTill() + "]";
 	}

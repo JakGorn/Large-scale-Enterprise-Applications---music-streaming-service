@@ -118,8 +118,8 @@ public class Statistics
 										System.out.println("Playlist name changed to " + nameChange);
 										break;
 									case "shuffle":
-										playlist.getConfig().switchShuffle();
-										System.out.println("Playlist shuffle switched to " + playlist.getConfig().getShuffle());
+										playlist.getConfig().setShuffle(!playlist.getConfig().isShuffle());
+										System.out.println("Playlist shuffle switched to " + playlist.getConfig().isShuffle());
 										break;
 									case "help":
 										System.out.println("Arguments:");

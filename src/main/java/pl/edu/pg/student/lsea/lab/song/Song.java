@@ -3,12 +3,25 @@ package pl.edu.pg.student.lsea.lab.song;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Comparator;
-import java.util.concurrent.atomic.AtomicLong;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import pl.edu.pg.student.lsea.lab.artist.Artist;
 
 /**
  * Represents a released song in the streaming service.
  * @author Jakub Górniak
  */
+@NoArgsConstructor
+@Entity
+@Table(name = "songs")
 public class Song implements Serializable{
 
 	/**
@@ -31,7 +44,7 @@ public class Song implements Serializable{
 	    ARTIST_ID {
 	    	@Override
 	        public int compare(Song s1, Song s2) {
-	            return s1.getArtistID().compareTo(s2.getArtistID());
+	            return s1.getArtist().getArtistID().compareTo(s2.getArtist().getArtistID());
 	        }
 	    },
 		RELEASE_DATE {
@@ -56,38 +69,40 @@ public class Song implements Serializable{
 	
 	/** serialization identifier */
 	private static final long serialVersionUID = 1L;
-
-	/** song id generator */
-	private static AtomicLong ID_GENERATOR = new AtomicLong();
 	
 	/** the song id */
+	@Getter 
+	@Id
+	@GeneratedValue
+	@Column(name = "song_id")
 	private Long songID;
 	
 	/** the name of the song */
+	@Getter @Setter
 	private String name;
 	
 	/** the name of the song album */
+	@Getter @Setter
 	private String album;
 	
-	/** the id of an artist who released the song (e.g. band, single musician) */
-	private Long artistID;
+	/** the artist who released the song (e.g. band, single musician) */
+	@Getter @Setter
+	@ManyToOne
+	@JoinColumn(name = "artist_id")
+	private Artist artist;
 	
 	/** the release date of the song */
+	@Getter @Setter
+	@Column(name = "release_date")
 	private LocalDate releaseDate;
 	
 	/** the genre of the song */
+	@Getter @Setter
 	private String genre;
 	
 	/** the length of the song in seconds */
+	@Getter @Setter
 	private Short length;
-
-	/**
-	 * Default constructor.
-	 * Creates a new song without setting parameters.
-	 */
-	public Song() {
-		this.songID = ID_GENERATOR.getAndIncrement();
-	}
 	
 	/**
 	 * Creates a new song with given parameters.
@@ -98,104 +113,12 @@ public class Song implements Serializable{
 	 * @param genre the genre of the song
 	 * @param length the length of the song in seconds
 	 */
-	public Song(String name, String album, Long artistID, LocalDate releaseDate, String genre, Short length) {
-		this.songID = ID_GENERATOR.getAndIncrement();
+	public Song(String name, String album, Artist artist, LocalDate releaseDate, String genre, Short length) {
 		this.name = name;
 		this.album = album;
-		this.artistID = artistID;
+		this.artist = artist;
 		this.releaseDate = releaseDate;
 		this.genre = genre;
-		this.length = length;
-	}
-
-	/**
-	 * @return the id of the song
-	 */
-	public Long getSongID() {
-		return songID;
-	}
-
-	/**
-	 * @return the name of the song
-	 */
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * @param name the name of the song to set
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-	
-	/**
-	 * @return the name of the song album
-	 */
-	public String getAlbum() {
-		return album;
-	}
-
-	/**
-	 * @param album the name of the song album to set
-	 */
-	public void setAlbum(String album) {
-		this.album = album;
-	}
-
-	/**
-	 * @return the id of an artist who released the song (e.g. band, single musician)
-	 */
-	public Long getArtistID() {
-		return artistID;
-	}
-
-	/**
-	 * @param artist the id of an artist who released the song (e.g. band, single musician) to set
-	 */
-	public void setArtistID(Long artistID) {
-		this.artistID = artistID;
-	}
-	
-	/**
-	 * @return the release date of the song
-	 */
-	public LocalDate getReleaseDate() {
-		return releaseDate;
-	}
-
-	/**
-	 * @param releaseDate the release date of the song 
-	 */
-	public void setReleaseDate(LocalDate releaseDate) {
-		this.releaseDate = releaseDate;
-	}
-
-	/**
-	 * @return the genre of the song
-	 */
-	public String getGenre() {
-		return genre;
-	}
-
-	/**
-	 * @param genre the genre of the song to set
-	 */
-	public void setGenre(String genre) {
-		this.genre = genre;
-	}
-
-	/**
-	 * @return the length of the song in seconds
-	 */
-	public Short getLength() {
-		return length;
-	}
-
-	/**
-	 * @param length the length of the song to set in seconds
-	 */
-	public void setLength(Short length) {
 		this.length = length;
 	}
 	
@@ -204,7 +127,7 @@ public class Song implements Serializable{
 	 * @return string representation of a song
 	 */
 	public String toString() {
-		return "\nSong [id = " + songID + ", name = " + name + ", album = " + album + ", artist id = " + artistID + ", release date = " + releaseDate
+		return "\nSong [id = " + songID + ", name = " + name + ", album = " + album + ", artist id = " + artist.getArtistID() + ", release date = " + releaseDate
 				+ ", genre = " + genre + ", length = " + length + "]";
 	}
 	
