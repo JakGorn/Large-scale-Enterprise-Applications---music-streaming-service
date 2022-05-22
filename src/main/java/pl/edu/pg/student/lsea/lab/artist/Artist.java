@@ -17,6 +17,7 @@ import javax.persistence.Table;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.NamedQuery;
 import pl.edu.pg.student.lsea.lab.song.Song;
 
 
@@ -24,6 +25,8 @@ import pl.edu.pg.student.lsea.lab.song.Song;
  * An abstract class which represents an artist who released a song in the streaming service.
  * @author Jakub Górniak
  */
+@NamedQuery(name = "findAllArtists", query = "from Artist")
+@NamedQuery(name = "findArtist_byStageName", query = "from Artist a where a.stageName = :stageName")
 @Entity
 @Table(name = "artists")
 @Inheritance(strategy = InheritanceType.JOINED)

@@ -4,10 +4,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
+import javax.persistence.*;
 
 import pl.edu.pg.student.lsea.lab.artist.Artist;
 import pl.edu.pg.student.lsea.lab.configuration.DataInitializer;
@@ -117,37 +114,31 @@ public class Server {
                         case "song":
                             String songName = messageArray[1];
                             if (songName.equals("all")) { 
-                                out.writeObject(data.getSongs());
+                                out.writeObject(this.em.createNamedQuery("findAllSongs", Song.class).getResultList());
                             } else {
-                                Song song = data.getSongs().stream()
-                                        .filter(s -> songName.equals(s.getName()))
-                                        .findAny()
-                                        .orElse(null);
-                                out.writeObject(song);
+                                Query query = this.em.createNamedQuery("findSong_byName", Song.class);
+                                query.setParameter("name", songName);
+                                out.writeObject(query.getSingleResult());
                             }
                             break;
                         case "artist":
                             String stageName = messageArray[1];
                             if (stageName.equals("all")) {
-                                out.writeObject(data.getArtists());
+                                out.writeObject(this.em.createNamedQuery("findAllArtists", Artist.class).getResultList());
                             } else {
-                                Artist artist = data.getArtists().stream()
-                                        .filter(a -> stageName.equals(a.getStageName()))
-                                        .findAny()
-                                        .orElse(null);
-                                out.writeObject(artist);
+                                Query query = this.em.createNamedQuery("findArtist_byStageName", Artist.class);
+                                query.setParameter("stageName", stageName);
+                                out.writeObject(query.getSingleResult());
                             }
                             break;
                         case "user":
                             String username = messageArray[1];
                             if (username.equals("all")) {
-                                out.writeObject(this.em.createNamedQuery("findUsers", User.class).getResultList());
+                                out.writeObject(this.em.createNamedQuery("findAllUsers", User.class).getResultList());
                             } else {
-                                User user = data.getUsers().stream()
-                                        .filter(u -> username.equals(u.getUsername()))
-                                        .findAny()
-                                        .orElse(null);
-                                out.writeObject(user);
+                                Query query = this.em.createNamedQuery("findUser_byUsername", User.class);
+                                query.setParameter("username", username);
+                                out.writeObject(query.getSingleResult());
                             }
                             break;
                         default:

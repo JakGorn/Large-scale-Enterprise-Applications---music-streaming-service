@@ -28,7 +28,8 @@ import pl.edu.pg.student.lsea.lab.user.playlist.Playlist;
  * Represents an user account in the streaming service.
  * @author Jakub Górniak
  */
-@NamedQuery(name = "findUsers", query = "from User")
+@NamedQuery(name = "findAllUsers", query = "from User")
+@NamedQuery(name = "findUser_byUsername", query = "from User u where u.username = :username")
 @Entity
 @Table(name = "users")
 public class User implements Serializable {

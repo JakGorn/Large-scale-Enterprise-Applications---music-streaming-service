@@ -4,10 +4,7 @@ import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -29,7 +26,7 @@ public class Band extends Artist {
 	private static final long serialVersionUID = 1L;
 	
 	/** list of members of the band */
-	@OneToMany(mappedBy = "band", cascade = CascadeType.ALL)
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "band", cascade = CascadeType.ALL)
 	private List<Musician> members;
 	
 	/**

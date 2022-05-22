@@ -3,13 +3,8 @@ package pl.edu.pg.student.lsea.lab.song;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Comparator;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,6 +14,8 @@ import pl.edu.pg.student.lsea.lab.artist.Artist;
  * Represents a released song in the streaming service.
  * @author Jakub Górniak
  */
+@NamedQuery(name = "findAllSongs", query = "from Song")
+@NamedQuery(name = "findSong_byName", query = "from Song s where s.name = :name")
 @NoArgsConstructor
 @Entity
 @Table(name = "songs")
