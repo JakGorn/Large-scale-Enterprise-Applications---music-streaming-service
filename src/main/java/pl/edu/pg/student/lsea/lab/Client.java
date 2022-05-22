@@ -161,12 +161,26 @@ public class Client extends Thread {
 					}
 				}
 				break;
+			case "add":
+				System.out.println("Please specify username.");
+				String newUse = scanner.next();
+				String newUsername = newUse + scanner.nextLine();
+				System.out.println("Please specify date of birth (format dd-mm-yyyy).");
+				String dat = scanner.next();
+				String dateOfBirth = dat + scanner.nextLine();
+				System.out.println("Please specify your country.");
+				String coun = scanner.next();
+				String country = coun + scanner.nextLine();
+				String response = (String) client.sendMessage(input + " " + newUsername + " " + dateOfBirth + " " + country);
+				System.out.println(response);
+				break;
 			case "help":
 				System.out.println("Arguments:");
 				System.out.println("help - show help with all possible arguments");
 				System.out.println("song - show information about chosen or all songs");
 				System.out.println("artist - show information about chosen or all artists");
 				System.out.println("user - show information about chosen or all users");
+				System.out.println("add - create new user account");
 				System.out.println("exit - exit the app");
 				break;
 			case "exit":

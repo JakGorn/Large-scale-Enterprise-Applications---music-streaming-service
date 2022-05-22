@@ -3,6 +3,8 @@ package pl.edu.pg.student.lsea.lab;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import javax.persistence.*;
 
@@ -82,6 +84,8 @@ public class Server {
         private BufferedReader in;
         /** entity manager */
         private EntityManager em;
+        /** formater for transforming string type to date type */
+        private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d-MM-yyyy");
 
         /**
          * constructor
@@ -141,6 +145,22 @@ public class Server {
                                 out.writeObject(query.getSingleResult());
                             }
                             break;
+                        case "add":
+                            try {
+                                String newUserData[] = messageArray[1].split(" ");
+                                EntityTransaction tx = this.em.getTransaction();
+                                String newUsername = newUserData[0];
+                                LocalDate dateOfBirth = LocalDate.parse(newUserData[1], formatter);
+                                String country = newUserData[2];
+                                User newUser = new User(newUsername, dateOfBirth, country);
+                                tx.begin();
+                                em.persist(newUser);
+                                tx.commit();
+                                out.writeObject("\nNew user added.");
+                            } catch (Exception e) {
+                                System.out.println(e.getMessage());
+                                out.writeObject("\nAdding user failed.");
+                            }
                         default:
                             break;
                     }

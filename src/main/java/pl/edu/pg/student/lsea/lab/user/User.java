@@ -118,8 +118,22 @@ public class User implements Serializable {
 	 * @param username the username of the user
 	 * @param birthDate the birth date of the user
 	 * @param country the country of the user
-	 * @param joinDate the date of joining the service by the user
-	 * @param listening the listening history of the user
+	 */
+	public User(String username, LocalDate birthDate, String country) {
+		this.username = username;
+		this.birthDate = birthDate;
+		this.country = country;
+		this.joinDate = LocalDate.now();
+		this.listenings = new ArrayList<Listening>();
+		this.playlists = new ArrayList<Playlist>();
+	}
+
+	/**
+	 * Creates a new user with given parameters.
+	 * @param username the username of the user
+	 * @param birthDate the birth date of the user
+	 * @param country the country of the user
+	 * @param listenings the listening history of the user
 	 * @param playlists the playlists of the user
 	 */
 	public User(String username, LocalDate birthDate, String country, List<Listening> listenings, List<Playlist> playlists) {
