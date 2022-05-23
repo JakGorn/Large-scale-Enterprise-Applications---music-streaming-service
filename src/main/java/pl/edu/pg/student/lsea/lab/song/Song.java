@@ -15,7 +15,7 @@ import pl.edu.pg.student.lsea.lab.artist.Artist;
  * @author Jakub Górniak
  */
 @NamedQuery(name = "findAllSongs", query = "from Song")
-@NamedQuery(name = "findSong_byName", query = "from Song s where s.name = :name")
+@NamedQuery(name = "findSong_byName", query = "from Song s where s.name=:name")
 @NoArgsConstructor
 @Entity
 @Table(name = "songs")

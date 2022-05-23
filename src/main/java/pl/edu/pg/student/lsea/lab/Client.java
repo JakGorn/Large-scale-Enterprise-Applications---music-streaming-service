@@ -93,13 +93,18 @@ public class Client extends Thread {
     	{
 			System.out.println("\nMain menu");
     		System.out.println("You can find information on the song database, type help for more info.");
+    		String songName;
+    		String stageName;
+    		String username;
+    		String response;
+    		String country;
     		input = scanner.next();
 	    	switch (input) {
 			case "song":
 				System.out.println("Please specify name of the song which information would you like to view.");
 				System.out.println("Alternatively input 'all' to view all songs");
 				String son = scanner.next();
-				String songName = son + scanner.nextLine();
+				songName = son + scanner.nextLine();
 				if(songName.equals("all"))
 				{		
 					// get all songs from server, message = "song all"
@@ -107,10 +112,10 @@ public class Client extends Thread {
 				}
 				else {
 					// get chosen song from server, message = "song 'song name'"
-					Song song = (Song) client.sendMessage(input + " " + songName);
-					if(song != null)
+					List<Song> songs = (List<Song>) client.sendMessage(input + " " + songName);
+					if(songs != null && !songs.isEmpty())
 					{
-						System.out.println(song);
+						songs.forEach(System.out::println);
 					}
 					else {
 						System.out.println("\nSong not found.");
@@ -121,7 +126,7 @@ public class Client extends Thread {
 				System.out.println("Please specify stage name of the artist which information would you like to view.");
 				System.out.println("Alternatively input 'all' to view all artists");
 				String sta = scanner.next();
-				String stageName = sta + scanner.nextLine();
+				stageName = sta + scanner.nextLine();
 				if(stageName.equals("all"))
 				{
 					// get all artists from server, message = "artist all"
@@ -129,10 +134,10 @@ public class Client extends Thread {
 				}
 				else {
 					// get chosen artist from server, message = "artist 'stage name'"
-					Artist artist = (Artist) client.sendMessage(input + " " + stageName);
-					if(artist != null)
+					List<Artist> artists = (List<Artist>) client.sendMessage(input + " " + stageName);
+					if(artists != null && !artists.isEmpty())
 					{
-						System.out.println(artist);
+						artists.forEach(System.out::println);
 					}
 					else {
 						System.out.println("\nArtist not found.");
@@ -143,7 +148,7 @@ public class Client extends Thread {
 				System.out.println("Please specify username of the user which information would you like to view.");
 				System.out.println("Alternatively input 'all' to view all users");
 				String use = scanner.next();
-				String username = use + scanner.nextLine();
+				username = use + scanner.nextLine();
 				if(username.equals("all"))
 				{
 					// get all users from server, message = "user all"
@@ -151,10 +156,10 @@ public class Client extends Thread {
 				}
 				else {
 					// get chosen user from server, message = "user 'username'"
-					User user = (User) client.sendMessage(input + " " + username);
-					if(user != null)
+					List<User> users = (List<User>) client.sendMessage(input + " " + username);
+					if(users != null && !users.isEmpty())
 					{
-						System.out.println(user);
+						users.forEach(System.out::println);
 					}
 					else {
 						System.out.println("\nUser not found.");
@@ -170,8 +175,53 @@ public class Client extends Thread {
 				String dateOfBirth = dat + scanner.nextLine();
 				System.out.println("Please specify your country.");
 				String coun = scanner.next();
-				String country = coun + scanner.nextLine();
-				String response = (String) client.sendMessage(input + " " + newUsername + " " + dateOfBirth + " " + country);
+				country = coun + scanner.nextLine();
+				response = (String) client.sendMessage(input + " " + newUsername + " " + dateOfBirth + " " + country);
+				System.out.println(response);
+				break;
+			case "remove":
+				System.out.println("Provide the nickname of a user to be removed.");
+				username = scanner.next();
+				username = username + scanner.nextLine();
+				response = (String) client.sendMessage(input + " " + username);
+				System.out.println(response);
+				break;
+			case "update":
+				System.out.println("Which type of data would you like to be updated? (type artist or user)");
+				String type = scanner.next();
+				type = type + scanner.nextLine();
+				String msg;
+				if(type.equals("artist")) {
+					System.out.println("Please provide the name of an artist to update their info.");
+					String stageNameToFind = scanner.next();
+					stageNameToFind += scanner.nextLine();
+					System.out.println("Please provide new artist stage name.");
+					stageName = scanner.next();
+					stageName = stageName + scanner.nextLine();
+					System.out.println("Please provide new artist country.");
+					country = scanner.next();
+					country = country + scanner.nextLine();
+					System.out.println("Please provide new artist genre.");
+					String genre = scanner.next();
+					genre = genre + scanner.nextLine();
+					msg = input + " " + type + " " + stageNameToFind + ";" + stageName + ";" + country + ";" + genre;
+				}
+				else if(type.equals("user")) {
+					System.out.println("Please provide username of the user to update their info.");
+					String usernameToFind = scanner.next();
+					usernameToFind += scanner.nextLine();
+					System.out.println("Please provide new username.");
+					username = scanner.next();
+					username = username + scanner.nextLine();
+					System.out.println("Please provide new user country.");
+					country = scanner.next();
+					country = country + scanner.nextLine();
+					msg = input + " " + type + " " + usernameToFind + ";" + username + ";" + country;
+				} else {
+					System.out.println("Please input correct data type.");
+					break;
+				}
+				response = (String) client.sendMessage(msg);
 				System.out.println(response);
 				break;
 			case "help":
@@ -181,6 +231,8 @@ public class Client extends Thread {
 				System.out.println("artist - show information about chosen or all artists");
 				System.out.println("user - show information about chosen or all users");
 				System.out.println("add - create new user account");
+				System.out.println("remove - remove information from the database");
+				System.out.println("update - update information in the database");
 				System.out.println("exit - exit the app");
 				break;
 			case "exit":

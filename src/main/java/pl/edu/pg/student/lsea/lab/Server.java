@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import javax.persistence.*;
 
@@ -24,6 +25,8 @@ public class Server {
     private ServerSocket serverSocket;
     /** entity manage factory */
     private EntityManagerFactory emf = Persistence.createEntityManagerFactory("name_PU");
+
+    //test
 
     /**
      * method that starts the server on a particular port
@@ -107,13 +110,16 @@ public class Server {
         /**
          * thread's method to be run when the thread starts
          */
-        @Override
+        @SuppressWarnings("unchecked")
+		@Override
         public void run() {
             try {
                 String message;
                 while ((message = in.readLine()) != null) {
                     System.out.println("Request from client side: " + message);
                     String messageArray[] = message.split(" ", 2);
+                    //String objectTypeAndID[];
+                    String username;
                     switch (messageArray[0]) {
                         case "song":
                             String songName = messageArray[1];
@@ -122,7 +128,7 @@ public class Server {
                             } else {
                                 Query query = this.em.createNamedQuery("findSong_byName", Song.class);
                                 query.setParameter("name", songName);
-                                out.writeObject(query.getSingleResult());
+                                out.writeObject(query.getResultList());
                             }
                             break;
                         case "artist":
@@ -132,17 +138,17 @@ public class Server {
                             } else {
                                 Query query = this.em.createNamedQuery("findArtist_byStageName", Artist.class);
                                 query.setParameter("stageName", stageName);
-                                out.writeObject(query.getSingleResult());
+                                out.writeObject(query.getResultList());
                             }
                             break;
                         case "user":
-                            String username = messageArray[1];
+                            username = messageArray[1];
                             if (username.equals("all")) {
                                 out.writeObject(this.em.createNamedQuery("findAllUsers", User.class).getResultList());
                             } else {
                                 Query query = this.em.createNamedQuery("findUser_byUsername", User.class);
                                 query.setParameter("username", username);
-                                out.writeObject(query.getSingleResult());
+                                out.writeObject(query.getResultList());
                             }
                             break;
                         case "add":
@@ -161,6 +167,74 @@ public class Server {
                                 System.out.println(e.getMessage());
                                 out.writeObject("\nAdding user failed.");
                             }
+                            break;
+                        case "remove":
+                        	try {
+	                        	username = messageArray[1];
+	                        	EntityTransaction tx = this.em.getTransaction();
+	                        	
+	                        	Query query = this.em.createNamedQuery("findUser_byUsername", User.class);
+	                            query.setParameter("username", username);
+	                    		List<User> users = (List<User>) query.getResultList();
+	                    		for(User user : users) {
+	                    			tx.begin();
+	                        		this.em.remove(user);
+	                        		tx.commit();
+	                    		}
+	                    		String msg = "\nUser " + username + " removed";
+	                    		out.writeObject(msg);
+                        	} catch (Exception e) {
+                        		System.out.println(e.getMessage());
+                                out.writeObject("\nRemoving user failed.");
+                        	}
+                    		break;                    	
+                        case "update":
+                        	String objectTypeAndID[] = messageArray[1].split(" ", 2);
+                        	String type = objectTypeAndID[0];
+                        	String[] info = objectTypeAndID[1].split(";");
+                        	EntityTransaction tx = this.em.getTransaction();
+                        	Query query;
+                        	String msg;
+                        	switch(type) {
+                        	case "artist":
+                        		query = this.em.createNamedQuery("findArtist_byStageName", Artist.class);
+                                query.setParameter("stageName", info[0]);
+                                List<Artist> artists = query.getResultList();
+                                if (!artists.isEmpty()) {
+                                	Artist artist = artists.get(0);
+                            		tx.begin();
+                            		artist.setStageName(info[1]);
+                            		artist.setCountry(info[2]);
+                            		artist.setGenre(info[3]);
+                            		tx.commit();
+                            		this.em.clear();
+                            		msg = "\nArtist " + info[0] + " updated";
+                            		out.writeObject(msg);
+                                } else {
+                                	out.writeObject("\nArtist not found");
+                                }
+                        		break;
+                        	case "user":
+                        		query = this.em.createNamedQuery("findUser_byUsername", User.class);
+                                query.setParameter("username", info[0]);
+                                List<User> users = query.getResultList();
+                                if (!users.isEmpty()) {
+                                	User user = users.get(0);
+                            		tx.begin();
+                            		user.setUsername(info[1]);
+                            		user.setCountry(info[2]);
+                            		tx.commit();
+                            		this.em.clear();
+                            		msg = "\nUser " + info[0] + " updated";
+                            		out.writeObject(msg);
+                                } else {
+                                	out.writeObject("\nUser not found");
+                                }
+                        		break;
+                        	default:
+                        		break;
+                        	}
+                        	break;
                         default:
                             break;
                     }
