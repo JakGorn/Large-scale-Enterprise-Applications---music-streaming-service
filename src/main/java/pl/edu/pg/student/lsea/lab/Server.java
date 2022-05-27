@@ -26,7 +26,6 @@ public class Server {
     /** entity manage factory */
     private EntityManagerFactory emf = Persistence.createEntityManagerFactory("name_PU");
 
-    //test
 
     /**
      * method that starts the server on a particular port
@@ -49,18 +48,17 @@ public class Server {
     	
     	EntityManager em = emf.createEntityManager();
     	EntityTransaction tx = em.getTransaction();
+
+        DatabaseHandler<Artist> artistHandler = new DatabaseHandler<Artist>(em, Artist.class);
+        DatabaseHandler<User> userHandler = new DatabaseHandler<User>(em, User.class);
     	
     	for(Artist a : data.getArtists())
         {
-        	tx.begin();
-        	em.persist(a);
-        	tx.commit();
+            artistHandler.save_to_database(a);
         }
         for(User u : data.getUsers())
         {
-        	tx.begin();
-        	em.persist(u);
-        	tx.commit();
+        	userHandler.save_to_database(u);
         }
 	}
 
@@ -115,53 +113,37 @@ public class Server {
         public void run() {
             try {
                 String message;
+                DatabaseHandler<Song> songHandler = new DatabaseHandler<Song>(this.em, Song.class);
+                DatabaseHandler<Artist> artistHandler = new DatabaseHandler<Artist>(this.em, Artist.class);
+                DatabaseHandler<User> userHandler = new DatabaseHandler<User>(this.em, User.class);
+
                 while ((message = in.readLine()) != null) {
                     System.out.println("Request from client side: " + message);
                     String messageArray[] = message.split(" ", 2);
-                    //String objectTypeAndID[];
-                    String username;
                     switch (messageArray[0]) {
                         case "song":
                             String songName = messageArray[1];
-                            if (songName.equals("all")) { 
-                                out.writeObject(this.em.createNamedQuery("findAllSongs", Song.class).getResultList());
-                            } else {
-                                Query query = this.em.createNamedQuery("findSong_byName", Song.class);
-                                query.setParameter("name", songName);
-                                out.writeObject(query.getResultList());
-                            }
+                            List<Song> songQueryResult = songHandler.get_from_database("song", songName);
+                            out.writeObject(songQueryResult);
                             break;
                         case "artist":
                             String stageName = messageArray[1];
-                            if (stageName.equals("all")) {
-                                out.writeObject(this.em.createNamedQuery("findAllArtists", Artist.class).getResultList());
-                            } else {
-                                Query query = this.em.createNamedQuery("findArtist_byStageName", Artist.class);
-                                query.setParameter("stageName", stageName);
-                                out.writeObject(query.getResultList());
-                            }
+                            List<Artist> artistQueryResult = artistHandler.get_from_database("artist", stageName);
+                            out.writeObject(artistQueryResult);
                             break;
                         case "user":
-                            username = messageArray[1];
-                            if (username.equals("all")) {
-                                out.writeObject(this.em.createNamedQuery("findAllUsers", User.class).getResultList());
-                            } else {
-                                Query query = this.em.createNamedQuery("findUser_byUsername", User.class);
-                                query.setParameter("username", username);
-                                out.writeObject(query.getResultList());
-                            }
+                            String username = messageArray[1];
+                            List<User> userQueryResult = userHandler.get_from_database("user", username);
+                            out.writeObject(userQueryResult);
                             break;
                         case "add":
                             try {
-                                String newUserData[] = messageArray[1].split(" ");
-                                EntityTransaction tx = this.em.getTransaction();
+                                String[] newUserData = messageArray[1].split(" ");
                                 String newUsername = newUserData[0];
                                 LocalDate dateOfBirth = LocalDate.parse(newUserData[1], formatter);
                                 String country = newUserData[2];
                                 User newUser = new User(newUsername, dateOfBirth, country);
-                                tx.begin();
-                                em.persist(newUser);
-                                tx.commit();
+                                userHandler.save_to_database(newUser);
                                 out.writeObject("\nNew user added.");
                             } catch (Exception e) {
                                 System.out.println(e.getMessage());
@@ -171,15 +153,9 @@ public class Server {
                         case "remove":
                         	try {
 	                        	username = messageArray[1];
-	                        	EntityTransaction tx = this.em.getTransaction();
-	                        	
-	                        	Query query = this.em.createNamedQuery("findUser_byUsername", User.class);
-	                            query.setParameter("username", username);
-	                    		List<User> users = (List<User>) query.getResultList();
+                                List<User> users = userHandler.get_from_database("user", username);
 	                    		for(User user : users) {
-	                    			tx.begin();
-	                        		this.em.remove(user);
-	                        		tx.commit();
+	                    			userHandler.remove_from_database(user);
 	                    		}
 	                    		String msg = "\nUser " + username + " removed";
 	                    		out.writeObject(msg);
@@ -192,41 +168,23 @@ public class Server {
                         	String objectTypeAndID[] = messageArray[1].split(" ", 2);
                         	String type = objectTypeAndID[0];
                         	String[] info = objectTypeAndID[1].split(";");
-                        	EntityTransaction tx = this.em.getTransaction();
-                        	Query query;
-                        	String msg;
                         	switch(type) {
                         	case "artist":
-                        		query = this.em.createNamedQuery("findArtist_byStageName", Artist.class);
-                                query.setParameter("stageName", info[0]);
-                                List<Artist> artists = query.getResultList();
+                                List<Artist> artists = artistHandler.get_from_database("artist", info[0]);
                                 if (!artists.isEmpty()) {
                                 	Artist artist = artists.get(0);
-                            		tx.begin();
-                            		artist.setStageName(info[1]);
-                            		artist.setCountry(info[2]);
-                            		artist.setGenre(info[3]);
-                            		tx.commit();
-                            		this.em.clear();
-                            		msg = "\nArtist " + info[0] + " updated";
-                            		out.writeObject(msg);
+                            		artistHandler.update_to_database("artist", info, artist);
+                            		out.writeObject("\nArtist " + info[0] + " updated");
                                 } else {
                                 	out.writeObject("\nArtist not found");
                                 }
                         		break;
                         	case "user":
-                        		query = this.em.createNamedQuery("findUser_byUsername", User.class);
-                                query.setParameter("username", info[0]);
-                                List<User> users = query.getResultList();
+                                List<User> users = userHandler.get_from_database("user", info[0]);
                                 if (!users.isEmpty()) {
                                 	User user = users.get(0);
-                            		tx.begin();
-                            		user.setUsername(info[1]);
-                            		user.setCountry(info[2]);
-                            		tx.commit();
-                            		this.em.clear();
-                            		msg = "\nUser " + info[0] + " updated";
-                            		out.writeObject(msg);
+                                    userHandler.update_to_database("user", info, user);
+                            		out.writeObject("\nUser " + info[0] + " updated");
                                 } else {
                                 	out.writeObject("\nUser not found");
                                 }
