@@ -34,7 +34,8 @@ public class DatabaseHandler<T> {
      * @param name identifier of the data to receive, "all" to receive all data of given type
      * @return list of the object founded in the database, "null" for unavailable data type
      */
-    public List<T> get_from_database(String type, String name) {
+	@SuppressWarnings("unchecked")
+	public List<T> get_from_database(String type, String name) {
         List<T> queryResult = null;
         Query query;
 

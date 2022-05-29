@@ -3,20 +3,21 @@ package pl.edu.pg.student.lsea.lab;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import javax.persistence.*;
 
 import pl.edu.pg.student.lsea.lab.artist.Artist;
+import pl.edu.pg.student.lsea.lab.artist.service.ArtistService;
 import pl.edu.pg.student.lsea.lab.configuration.DataInitializer;
 import pl.edu.pg.student.lsea.lab.song.Song;
+import pl.edu.pg.student.lsea.lab.song.service.SongService;
 import pl.edu.pg.student.lsea.lab.user.User;
+import pl.edu.pg.student.lsea.lab.user.service.UserService;
 
 /**
  * Class representing the server
- * @author Jan Bogdziewicz, Piotr Cichacki
+ * @author Jan Bogdziewicz, Piotr Cichacki, Jakub Górniak
  */
 public class Server {
     /** data generator */
@@ -47,7 +48,6 @@ public class Server {
     private void initDatabase() {
     	
     	EntityManager em = emf.createEntityManager();
-    	EntityTransaction tx = em.getTransaction();
 
         DatabaseHandler<Artist> artistHandler = new DatabaseHandler<Artist>(em, Artist.class);
         DatabaseHandler<User> userHandler = new DatabaseHandler<User>(em, User.class);
@@ -85,8 +85,6 @@ public class Server {
         private BufferedReader in;
         /** entity manager */
         private EntityManager em;
-        /** formater for transforming string type to date type */
-        private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d-MM-yyyy");
 
         /**
          * constructor
@@ -108,14 +106,13 @@ public class Server {
         /**
          * thread's method to be run when the thread starts
          */
-        @SuppressWarnings("unchecked")
-		@Override
+        @Override
         public void run() {
             try {
                 String message;
-                DatabaseHandler<Song> songHandler = new DatabaseHandler<Song>(this.em, Song.class);
-                DatabaseHandler<Artist> artistHandler = new DatabaseHandler<Artist>(this.em, Artist.class);
-                DatabaseHandler<User> userHandler = new DatabaseHandler<User>(this.em, User.class);
+                SongService songService = new SongService(new DatabaseHandler<Song>(this.em, Song.class));
+                ArtistService artistService = new ArtistService(new DatabaseHandler<Artist>(this.em, Artist.class));
+                UserService userService = new UserService(new DatabaseHandler<User>(this.em, User.class));
 
                 while ((message = in.readLine()) != null) {
                     System.out.println("Request from client side: " + message);
@@ -123,46 +120,24 @@ public class Server {
                     switch (messageArray[0]) {
                         case "song":
                             String songName = messageArray[1];
-                            List<Song> songQueryResult = songHandler.get_from_database("song", songName);
+                            List<Song> songQueryResult = songService.getSong(songName);
                             out.writeObject(songQueryResult);
                             break;
                         case "artist":
                             String stageName = messageArray[1];
-                            List<Artist> artistQueryResult = artistHandler.get_from_database("artist", stageName);
+                            List<Artist> artistQueryResult = artistService.getArtist(stageName);
                             out.writeObject(artistQueryResult);
                             break;
                         case "user":
                             String username = messageArray[1];
-                            List<User> userQueryResult = userHandler.get_from_database("user", username);
+                            List<User> userQueryResult = userService.getUser(username);
                             out.writeObject(userQueryResult);
                             break;
-                        case "add":
-                            try {
-                                String[] newUserData = messageArray[1].split(" ");
-                                String newUsername = newUserData[0];
-                                LocalDate dateOfBirth = LocalDate.parse(newUserData[1], formatter);
-                                String country = newUserData[2];
-                                User newUser = new User(newUsername, dateOfBirth, country);
-                                userHandler.save_to_database(newUser);
-                                out.writeObject("\nNew user added.");
-                            } catch (Exception e) {
-                                System.out.println(e.getMessage());
-                                out.writeObject("\nAdding user failed.");
-                            }
+                        case "add":                   
+                        	out.writeObject(userService.addUser(messageArray[1].split(" ")));
                             break;
                         case "remove":
-                        	try {
-	                        	username = messageArray[1];
-                                List<User> users = userHandler.get_from_database("user", username);
-	                    		for(User user : users) {
-	                    			userHandler.remove_from_database(user);
-	                    		}
-	                    		String msg = "\nUser " + username + " removed";
-	                    		out.writeObject(msg);
-                        	} catch (Exception e) {
-                        		System.out.println(e.getMessage());
-                                out.writeObject("\nRemoving user failed.");
-                        	}
+                        	out.writeObject(userService.removeUser(messageArray[1]));
                     		break;                    	
                         case "update":
                         	String objectTypeAndID[] = messageArray[1].split(" ", 2);
@@ -170,24 +145,10 @@ public class Server {
                         	String[] info = objectTypeAndID[1].split(";");
                         	switch(type) {
                         	case "artist":
-                                List<Artist> artists = artistHandler.get_from_database("artist", info[0]);
-                                if (!artists.isEmpty()) {
-                                	Artist artist = artists.get(0);
-                            		artistHandler.update_to_database("artist", info, artist);
-                            		out.writeObject("\nArtist " + info[0] + " updated");
-                                } else {
-                                	out.writeObject("\nArtist not found");
-                                }
+                        		out.writeObject(artistService.updateArtist(info));
                         		break;
                         	case "user":
-                                List<User> users = userHandler.get_from_database("user", info[0]);
-                                if (!users.isEmpty()) {
-                                	User user = users.get(0);
-                                    userHandler.update_to_database("user", info, user);
-                            		out.writeObject("\nUser " + info[0] + " updated");
-                                } else {
-                                	out.writeObject("\nUser not found");
-                                }
+                        		out.writeObject(userService.updateUser(info));
                         		break;
                         	default:
                         		break;

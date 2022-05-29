@@ -6,6 +6,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import pl.edu.pg.student.lsea.lab.DatabaseHandler;
 import pl.edu.pg.student.lsea.lab.artist.Artist;
 import pl.edu.pg.student.lsea.lab.artist.band.Band;
