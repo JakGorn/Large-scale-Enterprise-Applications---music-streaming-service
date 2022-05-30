@@ -41,7 +41,7 @@ public class ArtistService {
         if (!artists.isEmpty()) {
         	Artist artist = artists.get(0);
             artistHandler.update_to_database("artist", artistData, artist);
-    		return ("\nartist " + stageName + " updated");
+    		return ("\nArtist " + stageName + " updated");
         } else {
         	return "\nArtist not found";
         }
