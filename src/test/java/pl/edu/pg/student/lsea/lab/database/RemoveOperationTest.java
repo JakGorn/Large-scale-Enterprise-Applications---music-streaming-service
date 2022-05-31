@@ -24,7 +24,7 @@ public class RemoveOperationTest {
 
     @Mock
     /** mock database handler for user objects */
-    DatabaseHandler<User> userHandler = Mockito.mock(DatabaseHandler.class);
+    DatabaseHandler<User> userHandler;
     
     /**
      * Verifying the proper message is returned if not existing user is removed

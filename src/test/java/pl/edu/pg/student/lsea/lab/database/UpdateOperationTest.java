@@ -29,9 +29,10 @@ import pl.edu.pg.student.lsea.lab.user.service.UserService;
 public class UpdateOperationTest {
 	@Mock
     /** mock database handler for user objects */
-    DatabaseHandler<User> userHandler = Mockito.mock(DatabaseHandler.class);
+    DatabaseHandler<User> userHandler;
+	@Mock
 	/** mock database handler for artist objects */
-	DatabaseHandler<Artist> artistHandler = Mockito.mock(DatabaseHandler.class);
+	DatabaseHandler<Artist> artistHandler;
 
     /**
      * Verifying the proper message is returned if not existing user is updated

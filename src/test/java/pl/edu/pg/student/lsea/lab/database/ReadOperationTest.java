@@ -19,7 +19,6 @@ import pl.edu.pg.student.lsea.lab.user.service.UserService;
 
 import java.time.LocalDate;
 import java.time.Year;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -32,11 +31,13 @@ public class ReadOperationTest {
 
 	@Mock
     /** mock database handler for user objects */
-    DatabaseHandler<User> userHandler = Mockito.mock(DatabaseHandler.class);
+    DatabaseHandler<User> userHandler;
+	@Mock
     /** mock database handler for artist objects */
-    DatabaseHandler<Artist> artistHandler = Mockito.mock(DatabaseHandler.class);
+    DatabaseHandler<Artist> artistHandler;
+	@Mock
     /** mock database handler for song objects */
-    DatabaseHandler<Song> songHandler = Mockito.mock(DatabaseHandler.class);
+    DatabaseHandler<Song> songHandler;
 
     /** Testing if the method for getting all users was called and if the proper users' data was received */
     @Test

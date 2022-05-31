@@ -28,8 +28,9 @@ public class CreateOperationTest {
     @Mock
     /** mock entity manager */
     EntityManager em;
+    @Mock
     /** mock entity transaction */
-    EntityTransaction transaction = Mockito.mock(EntityTransaction.class);
+    EntityTransaction transaction;
 
     /**
      * Verifying number of times persist was called when saving new user to database
